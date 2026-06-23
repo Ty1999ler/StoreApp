@@ -1,0 +1,15 @@
+services:
+  showroom:
+    build: .
+    image: showroom-store-app
+    container_name: showroom
+    restart: unless-stopped
+    ports:
+      - "8002:8002" # reach it at http://<nas>:8002 — point your tunnel here
+    environment:
+      - PORT=8002
+    volumes:
+      - showroom-data:/app/server/data # keeps store.json across rebuilds
+
+volumes:
+  showroom-data:
