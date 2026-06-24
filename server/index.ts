@@ -66,15 +66,39 @@ const rooms: FittingRoom[] = [1, 2, 3, 4].map((n) => ({
 
 // Seed stock for every size of every color. A handful are intentionally left
 // at 0 so the "live stock" UI has something to grey out.
+// Deterministic but uneven stock: the extreme sizes of the second colour run
+// out, so the "only 1 left" / "sold out" states have something to show.
+function defaultQty(ci: number, si: number, len: number): number {
+  let qty = 6;
+  if (ci === 1 && (si === 0 || si === len - 1)) qty = 0;
+  if (ci === 2 && si === len - 1) qty = 1;
+  return qty;
+}
+
 function seedInventory() {
   for (const p of CATALOG) {
     p.colors.forEach((color, ci) => {
       p.sizes.forEach((size, si) => {
-        // Deterministic but uneven: the extreme sizes of the second color run out.
-        let qty = 6;
-        if (ci === 1 && (si === 0 || si === p.sizes.length - 1)) qty = 0;
-        if (ci === 2 && si === p.sizes.length - 1) qty = 1;
-        inventory[skuKey(p.id, color.name, size)] = qty;
+        inventory[skuKey(p.id, color.name, size)] = defaultQty(
+          ci,
+          si,
+          p.sizes.length
+        );
+      });
+    });
+  }
+}
+
+// Fill stock for any catalog SKU missing an entry (e.g. after the catalog
+// changes) without disturbing counts that already exist.
+function ensureInventory() {
+  for (const p of CATALOG) {
+    p.colors.forEach((color, ci) => {
+      p.sizes.forEach((size, si) => {
+        const key = skuKey(p.id, color.name, size);
+        if (inventory[key] === undefined) {
+          inventory[key] = defaultQty(ci, si, p.sizes.length);
+        }
       });
     });
   }
@@ -596,6 +620,7 @@ const PORT =
     ? Number(process.env.PORT) || 3001
     : 3001;
 load(); // restore any persisted state before accepting connections
+ensureInventory(); // make sure new catalog items have stock
 
 const httpServer = app.listen(PORT, () => {
   console.log(`Showroom API listening on http://localhost:${PORT}`);
