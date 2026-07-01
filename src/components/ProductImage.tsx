@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { GarmentType } from "../../shared/types";
 import { GarmentIcon } from "./GarmentIcon";
 
@@ -19,6 +19,10 @@ export function ProductImage({
   alt?: string;
 }) {
   const [failed, setFailed] = useState(false);
+
+  // Reset when the photo changes (e.g. switching colours) so a previously
+  // failed image doesn't latch the fallback onto a valid new one.
+  useEffect(() => setFailed(false), [src]);
 
   if (src && !failed) {
     return (

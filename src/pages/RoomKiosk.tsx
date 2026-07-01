@@ -401,7 +401,9 @@ function Chooser({
   const [size, setSize] = useState<string | null>(
     product.sizes.length === 1 ? product.sizes[0] : null
   );
-  const hex = product.colors.find((c) => c.name === color)?.hex ?? "#ccc";
+  const selColor = product.colors.find((c) => c.name === color);
+  const hex = selColor?.hex ?? "#ccc";
+  const selImage = selColor?.image ?? product.image;
   const stock = size ? stockFor(product.id, color, size) : 0;
 
   return (
@@ -409,10 +411,10 @@ function Chooser({
       <div className="mb-4 flex gap-4">
         <div className="h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-black/[0.05]">
           <ProductImage
-            src={product.image}
+            src={selImage}
             garment={product.garment}
             hex={hex}
-            alt={product.name}
+            alt={`${product.name} in ${color}`}
           />
         </div>
         <p className="text-sm text-ink/60">{product.description}</p>

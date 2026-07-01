@@ -27,12 +27,20 @@ function TopNav() {
         </div>
         <nav className="flex min-w-0 items-center gap-1 overflow-x-auto no-scrollbar">
           <NavLink
-            to="/customer"
+            to="/customer/dynamite"
             className={({ isActive }) =>
               `${link} ${isActive ? active : idle}`
             }
           >
-            Shopper
+            Women's
+          </NavLink>
+          <NavLink
+            to="/customer/hugo-boss"
+            className={({ isActive }) =>
+              `${link} ${isActive ? active : idle}`
+            }
+          >
+            Men's
           </NavLink>
           <NavLink
             to="/staff"
@@ -78,8 +86,9 @@ export default function App() {
       <TopNav />
       <main className="mx-auto max-w-5xl px-4 py-5">
         <Routes>
-          <Route path="/" element={<Navigate to="/customer" replace />} />
-          <Route path="/customer" element={<Customer />} />
+          <Route path="/" element={<Navigate to="/customer/dynamite" replace />} />
+          <Route path="/customer" element={<Navigate to="/customer/dynamite" replace />} />
+          <Route path="/customer/:collectionId" element={<Customer />} />
           <Route path="/staff" element={<Staff />} />
           <Route path="/room" element={<Room />} />
           <Route path="/room/:roomId" element={<RoomKiosk />} />

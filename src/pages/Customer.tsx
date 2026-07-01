@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import type { Product, RequestItem, Destination } from "../../shared/types";
-import { skuKey } from "../../shared/types";
+import { skuKey, COLLECTIONS } from "../../shared/types";
 import { api } from "../lib/api";
 import {
   getStoredSessionId,
@@ -14,6 +15,9 @@ import { PaymentSheet } from "../components/PaymentSheet";
 type Tab = "floor" | "bag";
 
 export function Customer() {
+  const { collectionId } = useParams();
+  const activeCollection =
+    COLLECTIONS.find((c) => c.id === collectionId) ?? COLLECTIONS[0];
   const { state, refresh, loaded } = useStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -69,6 +73,12 @@ export function Customer() {
     return state.inventory[skuKey(p.id, colorName, size)] ?? 0;
   }
 
+  // Only show this storefront's products on the floor / in the scan list.
+  const collectionProducts = useMemo(
+    () => products.filter((p) => p.collection === activeCollection.id),
+    [products, activeCollection.id]
+  );
+
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -89,11 +99,19 @@ export function Customer() {
       </div>
 
       {tab === "floor" ? (
-        <FloorGrid
-          products={products}
-          stockFor={stockFor}
-          onPick={setSelected}
-        />
+        <>
+          <div className="mb-3 flex items-baseline justify-between">
+            <h1 className="text-base font-semibold">{activeCollection.label}</h1>
+            <span className="text-xs uppercase tracking-wide text-ink/40">
+              {activeCollection.tab}
+            </span>
+          </div>
+          <FloorGrid
+            products={collectionProducts}
+            stockFor={stockFor}
+            onPick={setSelected}
+          />
+        </>
       ) : (
         <Bag
           items={myItems}
@@ -106,7 +124,7 @@ export function Customer() {
 
       {scanOpen && (
         <ScanModal
-          products={products}
+          products={collectionProducts}
           onClose={() => setScanOpen(false)}
           onResolve={(p) => {
             setScanOpen(false);
@@ -367,20 +385,22 @@ function DetailSheet({
   );
   const [destination, setDestination] = useState<Destination>("fitting_room");
 
-  const selectedHex =
-    product.colors.find((c) => c.name === color)?.hex ?? "#ccc";
+  const selectedColor = product.colors.find((c) => c.name === color);
+  const selectedHex = selectedColor?.hex ?? "#ccc";
+  // Swap to the chosen colour's photo when it has one; else the hero photo.
+  const selectedImage = selectedColor?.image ?? product.image;
   const sizeStock = size ? stockFor(product, color, size) : 0;
   const canAdd = !!size && sizeStock > 0;
 
   return (
     <Sheet onClose={onClose} title={product.name}>
       <div className="mb-4 flex gap-4">
-        <div className="h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-black/[0.05]">
+        <div className="h-36 w-28 shrink-0 overflow-hidden rounded-xl bg-black/[0.05]">
           <ProductImage
-            src={product.image}
+            src={selectedImage}
             garment={product.garment}
             hex={selectedHex}
-            alt={product.name}
+            alt={`${product.name} in ${color}`}
           />
         </div>
         <div className="flex flex-col">

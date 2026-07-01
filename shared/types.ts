@@ -11,10 +11,28 @@ export type GarmentType =
 export interface Color {
   name: string;
   hex: string;
+  /** Optional per-colour hero photo — when set, the detail view swaps to it. */
+  image?: string;
 }
+
+export interface Collection {
+  id: string;
+  /** Brand label, e.g. "HUGO BOSS". */
+  label: string;
+  /** Short tab label, e.g. "Men's". */
+  tab: string;
+}
+
+// The two storefronts. Order here is the order they appear in the nav.
+export const COLLECTIONS: Collection[] = [
+  { id: "dynamite", label: "Dynamite", tab: "Women's" },
+  { id: "hugo-boss", label: "HUGO BOSS", tab: "Men's" },
+];
 
 export interface Product {
   id: string;
+  /** Which storefront this belongs to (see COLLECTIONS). */
+  collection: string;
   /** The code printed on the floor display tag the customer scans. */
   tagCode: string;
   name: string;
